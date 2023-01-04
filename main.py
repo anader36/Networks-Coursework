@@ -12,6 +12,7 @@ import random
 
 # Defining a list which contains all the routers iP address that are available on the network.
 routersList = ['192.168.136.30', '192.168.136.31', '192.168.136.32', '192.168.136.33', '192.168.136.34', '192.168.136.35']
+SwitchList = ['192.168.136.29']
 
 # Defining the username and password variable as the credientials used in order to access SSH.
 username = 'ahmed'
@@ -29,7 +30,7 @@ while True:
         if isinstance(connection, netmiko.base_connection.BaseConnection):
             print(f'You have successfully connected to router: {router}')
         else:
-# If the connection does not succeed and SSH fails to work, a message indicating that the device did not connect will print out. 
+# If the connection does not succeed and SSH fails to work, a message indicating that the device did not connect will print out.
             print(f'You have failed to connect to the router: {router}')
         connection.secret = password
 # Enabling the SSH console.
@@ -54,4 +55,35 @@ while True:
 # Every 24 hours, a different router will be selected randomly as the designated router.
     time.sleep(86400)
 
-     
+#Connects to the switch
+    threat_detected = False
+    while True:
+        for switch in switchList:
+            connection = netmiko.ConnectHandler(ip=switch, username=username, password=password, device_type='cisco_ios')
+            #inputs the command to show the current mac address-table
+            command = 'show mac address-table'
+            output = connection.send_command(command)
+            lines = output.split('\n')
+            for line in lines:
+                print("Checking the mac address table on the switch")
+                # Extract the MAC address from the line
+                mac_address = line.split()[1]
+                for line in lines:
+                    if 'Dynamic' in line:
+                        # Extract the MAC address from the line
+                        mac_address = line.split()[1]
+                        # Set the flag indicating that a threat has been detected
+                        threat_detected = True
+                        print('Unknown MAC address present')
+                        command = f'mac access-list extended BLOCKTHREAT{switch} deny any host {mac_address}'
+                        connection.send_config_set([command])
+                        print('Unkown mac address successfully blocked')
+                        
+  # Check if the MAC addresses are in the trusted list and if the PDU is a valid routing PDU from the trusted OSPF domain
+  if mac_addresses not in trusted_macs or "not a valid OSPF PDU" in mac_addresses:
+    # Forward the PDU to the AI application for further inspection
+    stdin, stdout, stderr = ssh.exec_command("forward PDU to AI commands here")
+    print(stdout.read())
+    # Change the operating VLAN connecting the routers to another one and forward a copy to VLAN 88
+    stdin, stdout, stderr = ssh.exec_command("change VLAN commands here")
+    print(stdout.read())

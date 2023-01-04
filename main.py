@@ -12,7 +12,7 @@ import random
 
 # Defining a list which contains all the routers iP address that are available on the network.
 routersList = ['192.168.136.30', '192.168.136.31', '192.168.136.32', '192.168.136.33', '192.168.136.34', '192.168.136.35']
-SwitchList = ['192.168.136.29']
+switchList = ['192.168.136.29']
 
 # Defining the username and password variable as the credientials used in order to access SSH.
 username = 'ahmed'
@@ -60,7 +60,7 @@ while True:
     while True:
         for switch in switchList:
             connection = netmiko.ConnectHandler(ip=switch, username=username, password=password, device_type='cisco_ios')
-            #inputs the command to show the current mac address-table
+            #Inputs the command to show the current mac address-table
             command = 'show mac address-table'
             output = connection.send_command(command)
             lines = output.split('\n')
@@ -78,9 +78,9 @@ while True:
                         command = f'mac access-list extended BLOCKTHREAT{switch} deny any host {mac_address}'
                         connection.send_config_set([command])
                         print('Unkown mac address successfully blocked')
-                        
+
   # Check if the MAC addresses are in the trusted list and if the PDU is a valid routing PDU from the trusted OSPF domain
-  if mac_addresses not in trusted_macs or "not a valid OSPF PDU" in mac_addresses:
+if mac_addresses not in trusted_macs or "not a valid OSPF PDU" in mac_addresses:
     # Forward the PDU to the AI application for further inspection
     stdin, stdout, stderr = ssh.exec_command("forward PDU to AI commands here")
     print(stdout.read())
